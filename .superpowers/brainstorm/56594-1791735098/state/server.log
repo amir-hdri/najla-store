@@ -1,0 +1,12 @@
+{"type":"server-started","port":50044,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:50044/?key=a212d7455182b9a6980b70f8aea150e18b29da467df85acc89e1d4839c0d437b","screen_dir":"/Users/amirheidari/GitHub/Najla/projects/dates-fruits-store/.superpowers/brainstorm/56594-1791735098/content","state_dir":"/Users/amirheidari/GitHub/Najla/projects/dates-fruits-store/.superpowers/brainstorm/56594-1791735098/state","idle_timeout_ms":14400000}
+{"type":"screen-added","file":"/Users/amirheidari/GitHub/Najla/projects/dates-fruits-store/.superpowers/brainstorm/56594-1791735098/content/design-goals.html"}
+{"source":"user-event","type":"click","text":"۱\n      \n        هیرو و هویت بصری اول صفحه\n         بنر اصلی، شعار، CTA و اولین برداشت برند","choice":"hero","id":null,"timestamp":1791735142127}
+{"source":"user-event","type":"click","text":"۲\n      \n        کارت محصولات و کاتالوگ\n        گرید، اطلاعات قیمت/وزن، حالت‌های hover و مقایسه","choice":"catalog","id":null,"timestamp":1791735148433}
+{"source":"user-event","type":"click","text":"۳\n      \n        سبد خرید و تسویه حساب\n        دراور، پیکربندی چندمرحله‌ای checkout، فرم‌ها","choice":"cart","id":null,"timestamp":1791735149433}
+{"source":"user-event","type":"click","text":"۴\n      \n        سیستم طراحی: رنگ، تایپوگرافی، فاصله‌ها\n        توکن‌های CSS، مقیاس تایپ، سلسله‌مراتب بصری","choice":"system","id":null,"timestamp":1791735150669}
+{"source":"user-event","type":"click","text":"۵\n      \n        موبایل و دسترس‌پذیری\n        لمسی بودن، کنتراست، ناوبری موبایل","choice":"mobile","id":null,"timestamp":1791735151600}
+{"source":"user-event","type":"click","text":"۵\n      \n        موبایل و دسترس‌پذیری\n        لمسی بودن، کنتراست، ناوبری موبایل","choice":"mobile","id":null,"timestamp":1791735182697}
+{"source":"user-event","type":"click","text":"۵\n      \n        موبایل و دسترس‌پذیری\n        لمسی بودن، کنتراست، ناوبری موبایل","choice":"mobile","id":null,"timestamp":1791735183317}
+{"type":"screen-added","file":"/Users/amirheidari/GitHub/Najla/projects/dates-fruits-store/.superpowers/brainstorm/56594-1791735098/content/visual-direction.html"}
+{"type":"screen-added","file":"/Users/amirheidari/GitHub/Najla/projects/dates-fruits-store/.superpowers/brainstorm/56594-1791735098/content/waiting-1.html"}
+{"type":"server-stopped","reason":"idle timeout"}

@@ -1,0 +1,10 @@
+node_modules/
+datenest.db
+datenest.db-wal
+datenest.db-shm
+.server.log
+.env
+.DS_Store
+
+# build output
+dist/

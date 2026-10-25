@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="/assets/fonts/vazirmatn.css" />
+    <link rel="stylesheet" href="/assets/fonts/markazi.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="نجلا، فروشگاه تخصصی خرما و فرآورده‌های آن؛ خرمای ممتاز، کلاسیک و هدیه"
+    />
+    <title>NAJLA | فروشگاه تخصصی خرما</title>
+    <script src="/boot.js"></script>
+    <style>
+      /* ---- App loader: self-contained, renders before JS bundle ---- */
+      #app-loader {
+        --al-bg: #faf6ee;
+        --al-fg: #241a13;
+        --al-muted: #6e6259;
+        --al-gold: #b98338;
+        --al-primary: #8a3d1f;
+        --al-border: #e7dbc8;
+        --al-card: #fffdf8;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(38rem 24rem at 70% 12%, rgb(185 131 56 / 0.12), transparent 70%),
+          radial-gradient(30rem 20rem at 12% 88%, rgb(79 86 66 / 0.08), transparent 70%),
+          var(--al-bg);
+        color: var(--al-fg);
+        transition: opacity 0.5s ease;
+      }
+      html.dark #app-loader {
+        --al-bg: #15100c;
+        --al-fg: #f4ece1;
+        --al-muted: #b9ab9d;
+        --al-gold: #d9ac66;
+        --al-primary: #e0a45f;
+        --al-border: #35291f;
+        --al-card: #1f1813;
+      }
+      html.app-ready #app-loader {
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+        transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+      }
+      .al-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+      }
+      .al-badge {
+        position: relative;
+        display: grid;
+        place-items: center;
+        width: 86px;
+        height: 86px;
+        padding: 2px;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, var(--al-gold), var(--al-primary) 55%, var(--al-gold));
+        box-shadow: 0 18px 40px -24px rgb(36 24 18 / 0.35);
+      }
+      .al-plate {
+        display: grid;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+        border-radius: 9999px;
+        background: #fbf6ec;
+        overflow: hidden;
+      }
+      .al-ring {
+        position: absolute;
+        inset: -7px;
+        border-radius: 9999px;
+        border: 2px solid transparent;
+        border-block-start-color: var(--al-gold);
+        border-inline-end-color: var(--al-primary);
+        animation: al-spin 1.1s linear infinite;
+      }
+      .al-mark {
+        max-width: 54px;
+        max-height: 62px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        animation: al-pop 1.8s ease-in-out infinite;
+      }
+      .al-name {
+        margin: 1.1rem 0 0;
+        font-family: 'Markazi Text', 'Vazirmatn', Georgia, serif;
+        font-size: 1.9rem;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .al-sub {
+        margin: 0.45rem 0 0;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.32em;
+        color: var(--al-muted);
+      }
+      .al-bar {
+        position: relative;
+        width: 148px;
+        height: 3px;
+        margin-top: 1.4rem;
+        border-radius: 9999px;
+        background: var(--al-border);
+        overflow: hidden;
+      }
+      .al-fill {
+        position: absolute;
+        inset-block: 0;
+        inline-size: 42%;
+        inset-inline-start: 0;
+        border-radius: 9999px;
+        background: linear-gradient(90deg, var(--al-gold), var(--al-primary));
+        animation: al-slide 1.3s ease-in-out infinite;
+      }
+      .al-hint {
+        margin: 0.9rem 0 0;
+        font-size: 11px;
+        color: var(--al-muted);
+        animation: al-pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes al-spin {
+        to { transform: rotate(360deg); }
+      }
+      @keyframes al-slide {
+        0% { transform: translateX(-130%); }
+        100% { transform: translateX(280%); }
+      }
+      @keyframes al-pop {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.035); }
+      }
+      @keyframes al-pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .al-ring, .al-fill, .al-mark, .al-hint { animation: none; }
+        .al-fill { transform: translateX(70%); }
+        #app-loader { transition: none; }
+        html.app-ready #app-loader { transition: opacity 0.01s, visibility 0s linear 0.01s; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app-loader" role="status" aria-label="در حال بارگذاری فروشگاه نجلا">
+      <div class="al-inner">
+        <div class="al-badge">
+          <span class="al-ring" aria-hidden="true"></span>
+          <span class="al-plate">
+            <img class="al-mark" src="/images/brand/najla-mark.png" alt="" width="54" height="62" />
+          </span>
+        </div>
+        <p class="al-name">نجلا</p>
+        <p class="al-sub">NAJLA · DATES & FRUITS</p>
+        <div class="al-bar" aria-hidden="true"><span class="al-fill"></span></div>
+        <p class="al-hint">در حال آماده‌سازی فروشگاه…</p>
+      </div>
+    </div>
+    <div id="root"></div>
+    <noscript>
+      <p style="font-family: Tahoma, sans-serif; text-align: center; padding: 2rem">
+        برای مشاهده‌ی فروشگاه نجلا، جاوااسکریپت را در مرورگر خود فعال کنید.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

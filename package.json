@@ -1,0 +1,25 @@
+{
+  "name": "najla",
+  "version": "2.0.0",
+  "description": "NAJLA — فروشگاه تخصصی خرما و میوه | Premium Dates & Fresh Fruit E-Commerce (React SPA + Express API)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js & npm run dev --prefix client",
+    "dev:server": "node --watch server.js",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
+    "build:client": "npm run build --prefix client",
+    "seed": "node db.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}
