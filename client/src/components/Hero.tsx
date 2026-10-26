@@ -220,11 +220,13 @@ export function Hero() {
             >
               <div className="relative overflow-hidden rounded-t-[12rem] rounded-b-[2rem] border-[6px] border-card shadow-warm">
                 <img
-                  src="/images/brand/najla-hero.jpg"
+                  src="/images/brand/najla-hero.webp"
                   alt="تصویر برند نجلا از محصولات منتخب"
                   className="aspect-[4/5] w-full object-cover"
                   width={600}
                   height={750}
+                  fetchPriority="high"
+                  decoding="async"
                 />
                 <div
                   className="absolute inset-0 bg-gradient-to-t from-espresso/75 via-espresso/5 to-transparent"
@@ -254,11 +256,13 @@ export function Hero() {
             >
               <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-cream">
                 <img
-                  src="/images/brand/najla-product.jpg"
+                  src="/images/brand/najla-product.webp"
                   alt=""
                   className="warm-photo size-full object-cover"
-                  width={1100}
-                  height={1100}
+                  width={148}
+                  height={200}
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="min-w-0 flex-1">

@@ -26,9 +26,11 @@ export function Newsletter() {
       >
       <div className="relative overflow-hidden rounded-[calc(2rem-1px)] border-0 bg-espresso px-6 py-10 text-cream md:px-12 md:py-14">
         <img
-          src="/images/brand/najla-texture.jpg"
+          src="/images/brand/najla-texture.webp"
           alt=""
           aria-hidden
+          loading="lazy"
+          decoding="async"
           className="pointer-events-none absolute inset-0 size-full object-cover opacity-15"
         />
         <div

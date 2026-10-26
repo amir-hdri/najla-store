@@ -48,11 +48,13 @@ export function CartSheet({ onCheckout }: { onCheckout?: () => void }) {
             <div className="flex h-full min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border px-8 py-12 text-center">
               <span className="grid size-20 place-items-center overflow-hidden rounded-2xl border border-border/70 bg-white p-1.5 shadow-sm">
                 <img
-                  src="/images/brand/najla-art.jpg"
+                  src="/images/brand/najla-art.webp"
                   alt=""
                   className="size-full rounded-xl object-cover"
-                  width={80}
-                  height={80}
+                  width={400}
+                  height={400}
+                  loading="lazy"
+                  decoding="async"
                 />
               </span>
               <p className="font-display text-2xl">سبد خرید خالی است</p>

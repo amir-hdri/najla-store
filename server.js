@@ -10,6 +10,7 @@ const { existsSync } = require('fs');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const compression = require('compression');
 const { getDb } = require('./db');
 
 const app = express();
@@ -63,6 +64,28 @@ function resolvePublicPath(urlPath) {
 // ====== MIDDLEWARE ======
 app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
+
+// Gzip text assets — the JS/CSS bundles ship ~3x smaller over the wire.
+// Images (jpg/png/webp) are already compressed and skip the filter.
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    const ct = String(res.getHeader('Content-Type') || '');
+    if (/text\/|json|javascript|svg|xml|wasm/.test(ct)) return true;
+    return compression.filter(req, res);
+  },
+}));
+
+// Static caching: hashed build assets are immutable; media gets a day;
+// the HTML shell must revalidate so deploys land immediately.
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) {
+    if (req.path.startsWith('/assets/')) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    else if (/\.(?:png|jpe?g|webp|svg|ico|woff2?)$/i.test(req.path)) res.setHeader('Cache-Control', 'public, max-age=604800');
+    else if (req.path === '/' || req.path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');

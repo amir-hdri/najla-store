@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { MotionConfig } from 'framer-motion';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { CartProvider } from '@/context/CartContext';
@@ -12,9 +12,10 @@ import { FAQ } from '@/components/FAQ';
 import { BackToTop } from '@/components/BackToTop';
 import { Newsletter } from '@/components/Newsletter';
 import { Footer } from '@/components/Footer';
-import { CartSheet } from '@/components/CartSheet';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
-import { CheckoutDialog } from '@/components/checkout/CheckoutDialog';
+
+const CartSheet = lazy(() => import('@/components/CartSheet').then(m => ({ default: m.CartSheet })));
+const CheckoutDialog = lazy(() => import('@/components/checkout/CheckoutDialog').then(m => ({ default: m.CheckoutDialog })));
 
 function Shell() {
   const { bump } = useAddToCartFeedback();
@@ -44,8 +45,10 @@ function Shell() {
       </main>
       <Footer />
       <BackToTop />
-      <CartSheet onCheckout={() => setCheckoutOpen(true)} />
-      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      <Suspense fallback={null}>
+        <CartSheet onCheckout={() => setCheckoutOpen(true)} />
+        <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
+      </Suspense>
     </div>
   );
 }

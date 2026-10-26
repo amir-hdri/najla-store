@@ -7,7 +7,9 @@ import { CatalogAPI } from '@/lib/api';
 import type { CategoryRow, Product } from '@/lib/types';
 import { FilterBar, type CatalogFilters } from './FilterBar';
 import { ProductCard } from './ProductCard';
-import { QuickViewDialog } from './QuickViewDialog';
+import { lazy, Suspense } from 'react';
+
+const QuickViewDialog = lazy(() => import('./QuickViewDialog').then(m => ({ default: m.QuickViewDialog })));
 
 const SORT_PARAM: Record<CatalogFilters['sort'], string | undefined> = {
   default: undefined,
@@ -184,7 +186,9 @@ export function ProductGrid() {
 
       <div className="mt-8">{body}</div>
 
-      <QuickViewDialog product={quickView} onOpenChange={v => { if (!v) setQuickView(null); }} />
+      <Suspense fallback={null}>
+        <QuickViewDialog product={quickView} onOpenChange={v => { if (!v) setQuickView(null); }} />
+      </Suspense>
     </section>
   );
 }

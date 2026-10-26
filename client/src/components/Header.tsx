@@ -12,8 +12,10 @@ import {
 import { CartButton } from '@/components/CartButton';
 import { BrandMark } from '@/components/BrandMark';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { lazy, Suspense } from 'react';
 import { AuthDialog } from '@/components/auth/AuthDialog';
-import { AccountDialog } from '@/components/account/AccountDialog';
+
+const AccountDialog = lazy(() => import('@/components/account/AccountDialog').then(m => ({ default: m.AccountDialog })));
 import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
@@ -169,7 +171,9 @@ export function Header({ bump }: { bump: number }) {
         </Sheet>
 
         <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
-        <AccountDialog open={accountOpen} onOpenChange={setAccountOpen} />
+        <Suspense fallback={null}>
+          <AccountDialog open={accountOpen} onOpenChange={setAccountOpen} />
+        </Suspense>
 
         <motion.div
           style={{ scaleX: scrollYProgress }}

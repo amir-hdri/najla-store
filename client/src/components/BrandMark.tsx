@@ -24,11 +24,11 @@ export function BrandMark({ size = 'sm', className = '', animated = false }: Bra
       >
         <span className="relative grid size-full place-items-center overflow-hidden rounded-full bg-cream">
           <img
-            src="/images/brand/najla-mark.png"
+            src="/images/brand/najla-mark.webp"
             alt=""
             className={`absolute inset-0 size-full object-contain ${pad}`}
-            width={341}
-            height={448}
+            width={152}
+            height={200}
           />
         </span>
       </span>
