@@ -8,3 +8,5 @@ datenest.db-shm
 
 # build output
 dist/
+.vercel
+.env*

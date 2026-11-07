@@ -4,12 +4,23 @@
    carts, orders, order_status_history, promos
    ============================================ */
 
+const fs = require('fs');
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
-const DB_PATH = process.env.DATENEST_DB_PATH || path.join(__dirname, 'datenest.db');
+const DB_PATH = process.env.DATENEST_DB_PATH || (process.env.VERCEL ? path.join('/tmp', 'datenest.db') : path.join(__dirname, 'datenest.db'));
 
 function createDatabase() {
+  if (process.env.VERCEL && !fs.existsSync(DB_PATH)) {
+    const bundledDb = path.join(__dirname, 'datenest.db');
+    if (fs.existsSync(bundledDb)) {
+      try {
+        fs.copyFileSync(bundledDb, DB_PATH);
+      } catch (e) {
+        console.error('[DB] Failed copying bundled db to /tmp:', e.message);
+      }
+    }
+  }
   const db = new DatabaseSync(DB_PATH);
   db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON;');

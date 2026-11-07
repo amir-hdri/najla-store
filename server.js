@@ -20,7 +20,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 // ephemeral secret in development (tokens die on restart) and refuse to boot in
 // production rather than silently signing tokens with a publicly known key.
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  if (IS_PROD) {
+  if (IS_PROD && !process.env.VERCEL) {
     console.error('[FATAL] JWT_SECRET is not set. Refusing to start in production with a generated secret.');
     process.exit(1);
   }
@@ -861,12 +861,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'خطای داخلی سرور.' });
 });
 
-app.listen(PORT, () => {
-  const db = getDb();
-  const pc = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
-  console.log('==============================================');
-  console.log('  NAJLA E-Commerce Server');
-  console.log('  http://localhost:' + PORT);
-  console.log('  Products in DB: ' + pc);
-  console.log('==============================================');
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    const db = getDb();
+    const pc = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
+    console.log('==============================================');
+    console.log('  NAJLA E-Commerce Server');
+    console.log('  http://localhost:' + PORT);
+    console.log('  Products in DB: ' + pc);
+    console.log('==============================================');
+  });
+}
+
+module.exports = app;
