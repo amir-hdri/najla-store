@@ -15,7 +15,7 @@ import { CartSummary } from '@/components/cart/CartSummary';
 import { PromoField } from '@/components/cart/PromoField';
 
 export function CartSheet({ onCheckout }: { onCheckout?: () => void }) {
-  const { cart, promo, open, setOpen, lastError, setLastError } = useCart();
+  const { cart, promo, open, setOpen, lastError, refresh, loading, pending } = useCart();
   const empty = cart.items.length === 0;
   const checkout = () => {
     setOpen(false);
@@ -43,8 +43,9 @@ export function CartSheet({ onCheckout }: { onCheckout?: () => void }) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
-          {empty ? (
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {lastError && <div role="alert" className="mb-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm leading-7 text-destructive"><p>{lastError}</p><Button variant="outline" className="mt-2 h-10" disabled={loading} onClick={() => void refresh()}>تلاش دوباره</Button></div>}
+          {loading ? <p role="status" className="py-10 text-center text-sm text-muted-foreground">در حال دریافت سبد خرید…</p> : empty && !lastError ? (
             <div className="flex h-full min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border px-8 py-12 text-center">
               <span className="grid size-20 place-items-center overflow-hidden rounded-2xl border border-border/70 bg-white p-1.5 shadow-sm">
                 <img
@@ -78,32 +79,18 @@ export function CartSheet({ onCheckout }: { onCheckout?: () => void }) {
               <div className="mt-4">
                 <PromoField />
               </div>
-              {lastError ? (
-                <div
-                  role="alert"
-                  className="mt-3 flex items-start justify-between gap-2 rounded-xl bg-destructive/10 px-3 py-2 text-xs text-destructive"
-                >
-                  <span>{lastError}</span>
-                  <button
-                    type="button"
-                    onClick={() => setLastError(null)}
-                    className="shrink-0 font-medium underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                  >
-                    بستن
-                  </button>
-                </div>
-              ) : null}
+
             </>
           )}
         </div>
 
-        {!empty && (
+        {!empty && !loading && (
           <SheetFooter className="border-t border-border/70 bg-card/50 p-5">
             <div className="w-full space-y-4">
               <CartSummary cart={cart} promo={promo} />
               <Button
                 className="h-11 w-full rounded-full shadow-lg shadow-primary/20 active:scale-[.99]"
-                disabled={!onCheckout}
+                disabled={!onCheckout || pending}
                 onClick={checkout}
               >
                 <ArrowLeft className="ml-1 size-4" aria-hidden />
@@ -111,7 +98,7 @@ export function CartSheet({ onCheckout }: { onCheckout?: () => void }) {
               </Button>
               <p className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground">
                 <ShieldCheck className="size-3.5 text-gold" aria-hidden />
-                پرداخت امن · بسته‌بندی محافظ
+                پرداخت در محل · بسته‌بندی محافظ
               </p>
             </div>
           </SheetFooter>

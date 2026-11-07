@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useCart } from '@/context/CartContext';
 import { formatNumber } from '@/lib/format';
 
-export function CartButton({ bump = 0 }: { bump?: number }) {
+export function CartButton() {
   const { cart, setOpen } = useCart();
   const controls = useAnimation();
   const first = useRef(true);
@@ -20,7 +20,7 @@ export function CartButton({ bump = 0 }: { bump?: number }) {
       scale: [1, 1.18, 1],
       transition: { duration: 0.35, ease: 'easeOut' },
     });
-  }, [bump, controls]);
+  }, [cart.totalItems, controls]);
 
   return (
     <Button

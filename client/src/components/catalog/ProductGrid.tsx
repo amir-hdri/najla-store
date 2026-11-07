@@ -8,6 +8,7 @@ import type { CategoryRow, Product } from '@/lib/types';
 import { FilterBar, type CatalogFilters } from './FilterBar';
 import { ProductCard } from './ProductCard';
 import { lazy, Suspense } from 'react';
+import { catalogHash, EMPTY_FILTERS, readCatalogHash } from '@/lib/catalog';
 
 const QuickViewDialog = lazy(() => import('./QuickViewDialog').then(m => ({ default: m.QuickViewDialog })));
 
@@ -19,22 +20,49 @@ const SORT_PARAM: Record<CatalogFilters['sort'], string | undefined> = {
 };
 
 const faNumber = new Intl.NumberFormat('fa-IR');
-const EMPTY_FILTERS: CatalogFilters = { category: 'all', search: '', sort: 'default' };
+
 
 export function ProductGrid() {
   const reduce = useReducedMotion();
   const [categories, setCategories] = useState<CategoryRow[]>([]);
-  const [filters, setFilters] = useState<CatalogFilters>(EMPTY_FILTERS);
+  const [filters, setFilters] = useState<CatalogFilters>(() => readCatalogHash(window.location.hash));
   const [products, setProducts] = useState<Product[] | null>(null);
   const [quickView, setQuickView] = useState<Product | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    const sync = () => {
+      if (!window.location.hash.startsWith('#products')) return;
+      setProducts(null);
+      setError(null);
+      setFilters(readCatalogHash(window.location.hash));
+      document.getElementById('products')?.scrollIntoView();
+    };
+    const activateLink = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href^="#products"]') : null;
+      if (!link) return;
+      event.preventDefault();
+      if (window.location.hash !== link.hash) window.history.pushState(null, '', link.hash);
+      sync();
+    };
+    document.addEventListener('click', activateLink);
+    window.addEventListener('hashchange', sync);
+    window.addEventListener('popstate', sync);
+    if (window.location.hash.startsWith('#products')) document.getElementById('products')?.scrollIntoView();
+    return () => {
+      document.removeEventListener('click', activateLink);
+      window.removeEventListener('hashchange', sync);
+      window.removeEventListener('popstate', sync);
+    };
+  }, []);
+
+  useEffect(() => {
     CatalogAPI.listCategories()
       .then(r => setCategories(r.categories))
       .catch(() => setCategories([]));
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,21 +71,22 @@ export function ProductGrid() {
     if (filters.search.trim()) params.search = filters.search.trim();
     const sort = SORT_PARAM[filters.sort];
     if (sort) params.sort = sort;
-    CatalogAPI.listProducts(params)
+    const timer = window.setTimeout(() => CatalogAPI.listProducts(params)
       .then(r => { if (!cancelled) setProducts(r.products); })
       .catch(e => {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : 'خطایی رخ داد.');
           setProducts([]);
         }
-      });
-    return () => { cancelled = true; };
+      }), filters.search ? 250 : 0);
+    return () => { cancelled = true; window.clearTimeout(timer); };
   }, [filters, reloadKey]);
 
   const applyFilters = (next: CatalogFilters) => {
     setProducts(null);
     setError(null);
     setFilters(next);
+    window.history.replaceState(null, '', catalogHash(next));
   };
 
   const retry = () => {
@@ -70,7 +99,7 @@ export function ProductGrid() {
     if (products === null) {
       return (
         <div role="status" aria-busy="true" aria-label="در حال بارگذاری محصولات">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="overflow-hidden rounded-2xl border border-border/70 bg-card">
                 <Skeleton className="aspect-[4/3] rounded-none" />
@@ -126,19 +155,11 @@ export function ProductGrid() {
 
     return (
       <ul
-        className="grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        className="grid list-none grid-cols-2 gap-3 p-0 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
         aria-label="فهرست محصولات"
       >
-        {products.map((p, index) => (
-          <motion.li
-            key={p.id}
-            initial={reduce ? undefined : { opacity: 0, y: 16 }}
-            whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.45, delay: Math.min(index, 7) * 0.08 }}
-          >
-            <ProductCard product={p} onQuickView={setQuickView} />
-          </motion.li>
+        {products.map(p => (
+          <li key={p.id} className="min-w-0"><ProductCard product={p} onQuickView={setQuickView} /></li>
         ))}
       </ul>
     );
@@ -147,7 +168,7 @@ export function ProductGrid() {
   return (
     <section
       id="products"
-      className="relative mx-auto max-w-6xl scroll-mt-24 px-4 py-16 md:px-6 md:py-20"
+      className="relative mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20"
     >
       <motion.div
         initial={reduce ? undefined : { opacity: 0, y: 16 }}
@@ -161,9 +182,9 @@ export function ProductGrid() {
             <span className="h-px w-8 bg-primary/50" aria-hidden />
             فروشگاه نجلا
           </p>
-          <h2 className="font-display text-4xl md:text-5xl">محصولات تازه</h2>
+          <h2 className="font-display text-4xl md:text-5xl">انتخاب‌های خوش‌طعم نجلا</h2>
           <p className="mt-3 max-w-lg text-sm leading-7 text-muted-foreground">
-            خرما، میوه‌ی خشک، آجیل و جعبه‌های هدیه — همه با ضمانت تازگی نجلا.
+            طعم، وزن و قیمت را مقایسه کنید و انتخاب دلخواه‌تان را به سبد اضافه کنید.
           </p>
         </div>
         {products !== null && !error ? (
@@ -180,14 +201,14 @@ export function ProductGrid() {
         ) : null}
       </motion.div>
 
-      <div className="sticky top-16 z-30 -mx-4 mt-8 border-y border-border/60 bg-background/90 px-4 py-3 backdrop-blur-xl md:top-20 md:-mx-6 md:px-6">
+      <div className="mt-7 border-y border-border py-5">
         <FilterBar categories={categories} value={filters} onChange={applyFilters} />
       </div>
 
       <div className="mt-8">{body}</div>
 
       <Suspense fallback={null}>
-        <QuickViewDialog product={quickView} onOpenChange={v => { if (!v) setQuickView(null); }} />
+        {quickView && <QuickViewDialog key={quickView.id} product={quickView} onOpenChange={v => { if (!v) setQuickView(null); }} />}
       </Suspense>
     </section>
   );

@@ -135,6 +135,11 @@ function createDatabase() {
       active       INTEGER DEFAULT 1
     );
 
+    CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+      email TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_cart_items_cart ON cart_items(cart_id);
     CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
     CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
@@ -151,21 +156,21 @@ function createDatabase() {
 // فروشگاه تخصصی خرما: فقط خرما و فرآورده‌های آن. ۱۵ محصول در ۴ دسته.
 // Frontend source of truth: script.js SEED. Backend must match it exactly.
 const SEED_PRODUCTS = [
-  { slug: 'medjool', name: 'خرمای مدجول سلطنتی', category: 'premium', price: 849000, old_price: null, emoji: '🌴', description: 'درشت و دست‌چین؛ نرم و عسلی با طعم کارامل.', weight: '۵۰۰ گرم', badge: 'best', badge_text: 'پرفروش‌ترین', stock: 120 },
-  { slug: 'ajwa', name: 'خرمای عجوه مدینه', category: 'premium', price: 1290000, old_price: null, emoji: '🖤', description: 'خرمای تیره و اصیل مدینه؛ بافت نرم و طعم عمیق.', weight: '۴۰۰ گرم', badge: 'best', badge_text: 'ممتاز', stock: 60 },
-  { slug: 'sukkari', name: 'خرمای شکری', category: 'premium', price: 769000, old_price: null, emoji: '💛', description: 'طلایی و ترد با شیرینی ملایم؛ یار همیشگی چای.', weight: '۵۰۰ گرم', badge: null, badge_text: null, stock: 80 },
-  { slug: 'mabroom', name: 'خرمای مبروم', category: 'premium', price: 990000, old_price: 1190000, emoji: '❤️', description: 'کشیده و کم‌پوست با طعم غلیظ شیره‌ای.', weight: '۵۰۰ گرم', badge: 'sale', badge_text: '٪۱۷ تخفیف', stock: 70 },
-  { slug: 'deglet', name: 'خرمای دگلت نور', category: 'classic', price: 549000, old_price: 649000, emoji: '🪔', description: 'نیم‌خشک طلایی با طعم عسلی؛ عالی برای پخت.', weight: '۵۰۰ گرم', badge: 'sale', badge_text: '٪۱۵ تخفیف', stock: 90 },
-  { slug: 'sayer', name: 'خرمای سایر', category: 'classic', price: 389000, old_price: null, emoji: '🍊', description: 'تیره و پرملات با بافت جویدنی و طعم تافی.', weight: '۵۰۰ گرم', badge: 'new', badge_text: 'جدید', stock: 80 },
-  { slug: 'pitted', name: 'خرمای بدون هسته', category: 'classic', price: 429000, old_price: null, emoji: '🌰', description: 'آماده خوردن با عطر پوست پرتقال.', weight: '۴۰۰ گرم', badge: null, badge_text: null, stock: 150 },
-  { slug: 'zahedi', name: 'خرمای زاهدی', category: 'classic', price: 329000, old_price: null, emoji: '💛', description: 'خشک و کم‌شیرین؛ انتخاب روزمره و اقتصادی.', weight: '۷۰۰ گرم', badge: null, badge_text: null, stock: 200 },
-  { slug: 'khalas', name: 'خرمای خلاص', category: 'classic', price: 459000, old_price: null, emoji: '🤎', description: 'کاراملی و لطیف؛ پرفروش نخلستان‌های جنوب.', weight: '۵۰۰ گرم', badge: null, badge_text: null, stock: 110 },
-  { slug: 'mazafati', name: 'خرمای مضافتی بم', category: 'classic', price: 519000, old_price: null, emoji: '🖤', description: 'تازه و آبدار بم با رنگ مشکی براق.', weight: '۵۰۰ گرم', badge: 'new', badge_text: 'تازه رسید', stock: 95 },
-  { slug: 'date-syrup', name: 'شیره خرما', category: 'craft', price: 289000, old_price: null, emoji: '🍯', description: 'شیره غلیظ و طبیعی؛ بدون شکر افزوده.', weight: '۶۵۰ گرم', badge: null, badge_text: null, stock: 60 },
-  { slug: 'stuffed-dates', name: 'خرمای شکم‌پر', category: 'craft', price: 689000, old_price: null, emoji: '🌰', description: 'مدجول شکم‌پر با گردو و دارچین.', weight: '۴۰۰ گرم', badge: 'best', badge_text: 'پیشنهاد', stock: 75 },
-  { slug: 'choco-dates', name: 'خرمای شکلاتی', category: 'craft', price: 759000, old_price: 849000, emoji: '🍫', description: 'خرما با روکش شکلات تلخ ۷۰٪؛ پذیرایی شیک.', weight: '۳۵۰ گرم', badge: 'sale', badge_text: '٪۱۱ تخفیف', stock: 85 },
-  { slug: 'gift-box', name: 'جعبه هدیه ظرافت', category: 'gifts', price: 1890000, old_price: null, emoji: '🎁', description: 'چهار رقم ممتاز در جعبه مخمل یادگاری.', weight: '۱ کیلوگرم', badge: 'new', badge_text: 'جدید', stock: 50 },
-  { slug: 'royal-bundle', name: 'کالکشن سلطنتی مدجول', category: 'gifts', price: 2890000, old_price: 3290000, emoji: '🎁', description: 'مدجول جامبو با بادام و شکلات در جعبه چرمی نفیس.', weight: '۱٫۲ کیلوگرم', badge: 'best', badge_text: 'محدود', stock: 500 },
+  { slug: 'medjool', name: 'خرمای مدجول سلطنتی', category: 'premium', price: 849000, old_price: null, emoji: '', description: 'درشت و دست‌چین؛ نرم و عسلی با طعم کارامل.', weight: '۵۰۰ گرم', badge: 'best', badge_text: 'پرفروش‌ترین', stock: 120 },
+  { slug: 'ajwa', name: 'خرمای عجوه مدینه', category: 'premium', price: 1290000, old_price: null, emoji: '', description: 'خرمای تیره و اصیل مدینه؛ بافت نرم و طعم عمیق.', weight: '۴۰۰ گرم', badge: 'best', badge_text: 'ممتاز', stock: 60 },
+  { slug: 'sukkari', name: 'خرمای شکری', category: 'premium', price: 769000, old_price: null, emoji: '', description: 'طلایی و ترد با شیرینی ملایم؛ یار همیشگی چای.', weight: '۵۰۰ گرم', badge: null, badge_text: null, stock: 80 },
+  { slug: 'mabroom', name: 'خرمای مبروم', category: 'premium', price: 990000, old_price: 1190000, emoji: '', description: 'کشیده و کم‌پوست با طعم غلیظ شیره‌ای.', weight: '۵۰۰ گرم', badge: 'sale', badge_text: '٪۱۷ تخفیف', stock: 70 },
+  { slug: 'piarom', name: 'خرمای پیارم ممتاز', category: 'premium', price: 690000, old_price: 790000, emoji: '', description: 'خرمای شکلاتی دست‌چین حاجی‌آباد؛ سرشار از فیبر و انرژی.', weight: '۵۰۰ گرم', badge: 'sale', badge_text: '٪۱۳ تخفیف', stock: 90 },
+  { slug: 'rabbi', name: 'خرمای ربی قلعه‌گنج', category: 'classic', price: 389000, old_price: null, emoji: '', description: 'سورت‌شده و دست‌چین قلعه‌گنج کرمان؛ بافت گوشتی و خوش‌طعم.', weight: '۵۰۰ گرم', badge: 'new', badge_text: 'جدید', stock: 85 },
+  { slug: 'pitted', name: 'خرمای بدون هسته', category: 'classic', price: 429000, old_price: null, emoji: '', description: 'آماده خوردن با عطر پوست پرتقال.', weight: '۴۰۰ گرم', badge: null, badge_text: null, stock: 150 },
+  { slug: 'zahedi', name: 'خرمای زاهدی', category: 'classic', price: 329000, old_price: null, emoji: '', description: 'خشک و کم‌شیرین؛ انتخاب روزمره و اقتصادی.', weight: '۷۰۰ گرم', badge: null, badge_text: null, stock: 200 },
+  { slug: 'khalas', name: 'خرمای خلاص', category: 'classic', price: 459000, old_price: null, emoji: '', description: 'کاراملی و لطیف؛ پرفروش نخلستان‌های جنوب.', weight: '۵۰۰ گرم', badge: null, badge_text: null, stock: 110 },
+  { slug: 'mazafati', name: 'خرمای مضافتی بم', category: 'classic', price: 519000, old_price: null, emoji: '', description: 'تازه و آبدار بم با رنگ مشکی براق.', weight: '۵۰۰ گرم', badge: 'new', badge_text: 'تازه رسید', stock: 95 },
+  { slug: 'date-syrup', name: 'شیره خرما', category: 'craft', price: 289000, old_price: null, emoji: '', description: 'شیره غلیظ و طبیعی؛ بدون شکر افزوده.', weight: '۶۵۰ گرم', badge: null, badge_text: null, stock: 60 },
+  { slug: 'stuffed-dates', name: 'خرمای شکم‌پر', category: 'craft', price: 689000, old_price: null, emoji: '', description: 'مدجول شکم‌پر با گردو و دارچین.', weight: '۴۰۰ گرم', badge: 'best', badge_text: 'پیشنهاد', stock: 75 },
+  { slug: 'choco-dates', name: 'خرمای شکلاتی', category: 'craft', price: 759000, old_price: 849000, emoji: '', description: 'خرما با روکش شکلات تلخ ۷۰٪؛ پذیرایی شیک.', weight: '۳۵۰ گرم', badge: 'sale', badge_text: '٪۱۱ تخفیف', stock: 85 },
+  { slug: 'gift-box', name: 'جعبه هدیه ظرافت', category: 'gifts', price: 1890000, old_price: null, emoji: '', description: 'چهار رقم ممتاز در جعبه مخمل یادگاری.', weight: '۱ کیلوگرم', badge: 'new', badge_text: 'جدید', stock: 50 },
+  { slug: 'royal-bundle', name: 'کالکشن سلطنتی مدجول', category: 'gifts', price: 2890000, old_price: 3290000, emoji: '', description: 'مدجول جامبو با بادام و شکلات در جعبه چرمی نفیس.', weight: '۱٫۲ کیلوگرم', badge: 'best', badge_text: 'محدود', stock: 500 },
 ];
 
 const SEED_PROMOS = [

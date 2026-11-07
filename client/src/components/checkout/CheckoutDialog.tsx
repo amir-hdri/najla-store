@@ -6,7 +6,6 @@ import {
   Banknote,
   Check,
   CreditCard,
-  Globe2,
   Loader2,
   MapPin,
   Package,
@@ -31,9 +30,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { CheckoutSuccess } from './CheckoutSuccess';
 import { cn } from 'cn';
+import { normalizeDigits, normalizePhone, PHONE_RE } from '@/lib/input';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[+0-9()\-\s]{6,20}$/;
 
 type Step = 1 | 2 | 3;
 
@@ -65,8 +64,7 @@ const PAYMENT_OPTIONS: {
   note: string;
   icon: typeof CreditCard;
 }[] = [
-  { value: 'card', label: 'درگاه بانکی', note: 'پرداخت آنلاین و امن', icon: CreditCard },
-  { value: 'paypal', label: 'پی‌پال', note: 'برای پرداخت بین‌المللی', icon: Globe2 },
+  { value: 'card', label: 'درگاه بانکی', note: 'در حال حاضر در دسترس نیست', icon: CreditCard },
   { value: 'cod', label: 'پرداخت در محل', note: 'نقدی هنگام تحویل سفارش', icon: Banknote },
 ];
 
@@ -78,8 +76,8 @@ const STEP_LABELS: Record<Step, string> = {
 
 function validateAddress(f: AddressForm): string | null {
   if (!f.customer_name.trim()) return 'نام گیرنده لازم است.';
-  if (!EMAIL_RE.test(f.customer_email)) return 'ایمیل معتبر نیست.';
-  if (f.customer_phone && !PHONE_RE.test(f.customer_phone)) return 'شماره تماس معتبر نیست.';
+  if (!EMAIL_RE.test(f.customer_email.trim())) return 'ایمیل معتبر نیست.';
+  if (f.customer_phone && !PHONE_RE.test(normalizePhone(f.customer_phone))) return 'شماره تماس معتبر نیست.';
   if (!f.customer_address.trim()) return 'نشانی لازم است.';
   if (!f.customer_city.trim()) return 'شهر لازم است.';
   if (!f.customer_country.trim()) return 'کشور لازم است.';
@@ -94,10 +92,10 @@ export function CheckoutDialog({
   onOpenChange(v: boolean): void;
 }) {
   const { user } = useAuth();
-  const { cart, promo, setOpen: setCartOpen, clear, refresh } = useCart();
+  const { cart, promo, setOpen: setCartOpen, setPromo, refresh } = useCart();
   const [step, setStep] = useState<Step>(1);
   const [form, setForm] = useState<AddressForm>(EMPTY_FORM);
-  const [payment, setPayment] = useState<OrderPayload['payment_method']>('card');
+  const [payment, setPayment] = useState<OrderPayload['payment_method']>('cod');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState<Order | null>(null);
@@ -112,7 +110,7 @@ export function CheckoutDialog({
       setBusy(false);
       setSuccess(null);
       setPrefilled(false);
-      setPayment('card');
+      setPayment('cod');
       return;
     }
     setForm(f => ({
@@ -143,23 +141,24 @@ export function CheckoutDialog({
   }, [open, user, prefilled]);
 
   async function submit() {
+    if (busy) return;
     setBusy(true);
     setError(null);
     try {
       const { order } = await OrdersAPI.create({
         customer_name: form.customer_name.trim(),
         customer_email: form.customer_email.trim(),
-        customer_phone: form.customer_phone.trim() || undefined,
+        customer_phone: normalizePhone(form.customer_phone) || undefined,
         customer_address: form.customer_address.trim(),
         customer_city: form.customer_city.trim(),
         customer_state: form.customer_state.trim() || undefined,
-        customer_postal: form.customer_postal.trim() || undefined,
+        customer_postal: normalizeDigits(form.customer_postal.trim()) || undefined,
         customer_country: form.customer_country.trim(),
         payment_method: payment,
         promo_code: promo?.code,
       });
       setSuccess(order);
-      await clear();
+      setPromo(null);
       void refresh();
       setCartOpen(false);
     } catch (e) {
@@ -177,7 +176,7 @@ export function CheckoutDialog({
   if (success) {
     return (
       <Dialog open onOpenChange={onOpenChange}>
-        <DialogContent className="overflow-hidden p-0 sm:max-w-md" dir="rtl">
+        <DialogContent className="overflow-y-auto p-0 sm:max-w-md" dir="rtl">
           <CheckoutSuccess order={success} onClose={() => onOpenChange(false)} />
         </DialogContent>
       </Dialog>
@@ -187,8 +186,8 @@ export function CheckoutDialog({
   const empty = cart.items.length === 0;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl" dir="rtl">
+    <Dialog open={open} onOpenChange={value => { if (!busy) onOpenChange(value); }}>
+      <DialogContent className="flex max-h-[92dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl" dir="rtl">
         <DialogHeader className="border-b border-border/70 px-6 pb-4 pe-12 pt-5 text-start">
           <DialogTitle className="font-display text-2xl">تکمیل سفارش</DialogTitle>
           <DialogDescription>
@@ -229,7 +228,7 @@ export function CheckoutDialog({
                     </span>
                     <span
                       className={cn(
-                        'hidden text-xs whitespace-nowrap sm:block',
+                        'text-xs whitespace-nowrap',
                         step === s ? 'font-semibold text-foreground' : 'text-muted-foreground',
                       )}
                     >
@@ -246,7 +245,7 @@ export function CheckoutDialog({
               </ol>
 
               {step === 1 && (
-                <div className="space-y-4">
+                <form id="checkout-address" className="space-y-4" onSubmit={e => { e.preventDefault(); const v = validateAddress(form); if (v) { setError(v); return; } setError(null); setStep(2); }}>
                   <div className="flex items-center justify-between">
                     <h3 className="font-display text-lg">نشانی گیرنده</h3>
                     <span className="text-[10px] text-muted-foreground">* فیلدهای الزامی</span>
@@ -256,6 +255,7 @@ export function CheckoutDialog({
                       <Label htmlFor="co-name">نام و نام خانوادگی *</Label>
                       <Input
                         id="co-name"
+                        required
                         autoComplete="name"
                         value={form.customer_name}
                         onChange={set('customer_name')}
@@ -266,6 +266,7 @@ export function CheckoutDialog({
                         <Label htmlFor="co-email">ایمیل *</Label>
                         <Input
                           id="co-email"
+                        required
                           type="email"
                           dir="ltr"
                           autoComplete="email"
@@ -291,6 +292,7 @@ export function CheckoutDialog({
                       <Label htmlFor="co-address">نشانی کامل *</Label>
                       <Input
                         id="co-address"
+                        required
                         autoComplete="street-address"
                         placeholder="خیابان، کوچه، پلاک و واحد"
                         value={form.customer_address}
@@ -302,6 +304,7 @@ export function CheckoutDialog({
                         <Label htmlFor="co-city">شهر *</Label>
                         <Input
                           id="co-city"
+                        required
                           autoComplete="address-level2"
                           value={form.customer_city}
                           onChange={set('customer_city')}
@@ -331,6 +334,8 @@ export function CheckoutDialog({
                         <Label htmlFor="co-country">کشور *</Label>
                         <Input
                           id="co-country"
+                        required
+                        readOnly
                           autoComplete="country-name"
                           value={form.customer_country}
                           onChange={set('customer_country')}
@@ -338,7 +343,7 @@ export function CheckoutDialog({
                       </div>
                     </div>
                   </div>
-                </div>
+                </form>
               )}
 
               {step === 2 && (
@@ -355,7 +360,7 @@ export function CheckoutDialog({
                         <label
                           key={opt.value}
                           className={cn(
-                            'group flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25',
+                            'group flex items-center gap-3 has-disabled:cursor-not-allowed has-disabled:opacity-60 rounded-xl border p-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25',
                             active
                               ? 'border-primary bg-primary/5 shadow-sm'
                               : 'border-border/80 hover:border-primary/40 hover:bg-muted/40',
@@ -366,6 +371,7 @@ export function CheckoutDialog({
                             name="payment"
                             value={opt.value}
                             checked={active}
+                            disabled={opt.value !== 'cod'}
                             onChange={() => setPayment(opt.value)}
                             className="sr-only"
                           />
@@ -397,7 +403,7 @@ export function CheckoutDialog({
                     })}
                   </div>
                   <p className="rounded-xl bg-muted/50 px-3 py-2 text-[11px] leading-6 text-muted-foreground">
-                    پرداخت آنلاین در این نسخه نمایشی است؛ سفارش‌های کارتی بلافاصله پرداخت‌شده ثبت می‌شوند.
+                    مبلغ سفارش هنگام تحویل دریافت می‌شود. درگاه آنلاین هنوز فعال نیست.
                   </p>
                 </div>
               )}
@@ -514,16 +520,11 @@ export function CheckoutDialog({
             ) : step < 3 ? (
               <Button
                 className="tap h-11 rounded-full px-5"
-                onClick={() => {
-                  if (step === 1) {
-                    const v = validateAddress(form);
-                    if (v) { setError(v); return; }
-                  }
-                  setError(null);
-                  setStep(s => (s + 1) as Step);
-                }}
+                type={step === 1 ? 'submit' : 'button'}
+                form={step === 1 ? 'checkout-address' : undefined}
+                onClick={() => { if (step === 2) { setError(null); setStep(3); } }}
               >
-                بعدی
+                {step === 1 ? 'ادامه به روش پرداخت' : 'بررسی سفارش'}
                 <ArrowLeft className="mr-1 size-4" aria-hidden />
               </Button>
             ) : (

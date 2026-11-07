@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
+import { Loader2, Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +12,9 @@ import { formatToman } from '@/lib/format';
 import type { Product } from '@/lib/types';
 import { ProductArt } from './ProductArt';
 import { artFor } from '@/art/productArt';
+import { photoFor } from '@/lib/productMedia';
 import { useCart } from '@/context/CartContext';
+import { useToast } from '@/components/cartAnim';
 
 const BADGE_FALLBACK: Record<string, string> = {
   best: 'پرفروش',
@@ -29,12 +31,17 @@ export function QuickViewDialog({
   product: Product | null;
   onOpenChange(open: boolean): void;
 }) {
-  const { add } = useCart();
+  const { add, cart } = useCart();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
 
   if (!product) return null;
   const art = artFor(product.slug) ?? '';
-  const max = Math.min(product.stock, 99);
+  const inCart = cart.items.find(item => item.product_id === product.id)?.quantity || 0;
+  const max = Math.max(0, Math.min(product.stock, 99) - inCart);
+  const selectedQty = Math.min(qty, Math.max(1, max));
   const out = product.stock <= 0;
   const compare = product.old_price != null && product.old_price > product.price;
   const label =
@@ -45,23 +52,24 @@ export function QuickViewDialog({
     : 0;
 
   return (
-    <Dialog open onOpenChange={v => { if (!v) setQty(1); onOpenChange(v); }}>
-      <DialogContent className="max-w-[calc(100%-2rem)] gap-0 overflow-hidden p-0 sm:max-w-2xl">
+    <Dialog open onOpenChange={v => { if (busy) return; if (!v) { setQty(1); setError(null); } onOpenChange(v); }}>
+      <DialogContent className="max-h-[90dvh] max-w-[calc(100%-2rem)] gap-0 overflow-y-auto p-0 sm:max-w-2xl">
         <div className="grid sm:grid-cols-2">
-          <div className="relative bg-muted/40">
+          <div className="relative bg-muted/30">
             <ProductArt
+              photo={photoFor(product.slug)}
               svg={art}
               alt={product.name}
-              className="aspect-[4/3] overflow-hidden sm:aspect-auto sm:h-full [&>svg]:h-full [&>svg]:w-full"
+              className="h-56 overflow-hidden sm:h-full sm:min-h-80 [&>svg]:h-full [&>svg]:w-full"
             />
             {label ? (
-              <span className="absolute right-3 top-3 rounded-full border border-border/60 bg-card/90 px-2.5 py-1 text-[10px] font-bold text-primary shadow-sm backdrop-blur">
+              <span className="absolute right-3 top-3 rounded-full border border-border/60 bg-card/90 px-3 py-1 text-[11px] font-bold text-primary shadow-xs backdrop-blur-md">
                 {label}
               </span>
             ) : null}
           </div>
 
-          <div className="flex flex-col p-5 sm:p-6">
+          <div className="flex flex-col p-5 sm:p-6 sm:pt-10">
             <DialogHeader className="text-start">
               <p className="text-[10px] font-semibold tracking-wide text-primary">محصول نجلا</p>
               <DialogTitle className="font-display text-3xl leading-tight">
@@ -106,20 +114,20 @@ export function QuickViewDialog({
                   variant="ghost"
                   size="icon"
                   className="tap rounded-full"
-                  disabled={out || qty <= 1}
+                  disabled={busy || out || selectedQty <= 1}
                   onClick={() => setQty(q => Math.max(1, q - 1))}
                   aria-label="کاهش تعداد"
                 >
                   <Minus className="size-4" aria-hidden />
                 </Button>
                 <span className="min-w-8 text-center text-sm font-semibold tabular-nums" aria-live="polite">
-                  {faNumber.format(qty)}
+                  {faNumber.format(selectedQty)}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="tap rounded-full"
-                  disabled={out || qty >= max}
+                  disabled={busy || out || selectedQty >= max}
                   onClick={() => setQty(q => Math.min(max, q + 1))}
                   aria-label="افزایش تعداد"
                 >
@@ -129,18 +137,24 @@ export function QuickViewDialog({
 
               <Button
                 className="h-10 flex-1 rounded-full"
-                disabled={out}
-                onClick={() => {
-                  add(product.id, qty);
-                  setQty(1);
-                  onOpenChange(false);
+                disabled={busy || out || max === 0}
+                onClick={async () => {
+                  if (busy) return;
+                  setBusy(true); setError(null);
+                  try {
+                    await add(product.id, selectedQty);
+                    toast(`«${product.name}» به سبد اضافه شد`);
+                    setQty(1); onOpenChange(false);
+                  } catch (e) { setError(e instanceof Error ? e.message : 'افزودن انجام نشد. دوباره تلاش کنید.'); }
+                  finally { setBusy(false); }
                 }}
               >
-                <ShoppingBag className="size-4" aria-hidden />
-                {out ? 'ناموجود' : 'افزودن به سبد'}
+                {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <ShoppingBag className="size-4" aria-hidden />}
+                {out ? 'ناموجود' : max === 0 ? 'حداکثر موجودی در سبد شماست' : busy ? 'در حال افزودن' : 'افزودن به سبد'}
               </Button>
             </div>
 
+            {error && <p role="alert" className="mt-3 text-xs leading-6 text-destructive">{error}</p>}
             <div className="mt-5 flex items-center gap-4 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Truck className="size-3.5 text-gold" aria-hidden />

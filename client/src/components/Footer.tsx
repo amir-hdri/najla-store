@@ -1,4 +1,4 @@
-import { Leaf, Mail, ShieldCheck, Truck } from 'lucide-react';
+import { Leaf, ShoppingBag, ShieldCheck, Truck } from 'lucide-react';
 import { BrandMark } from '@/components/BrandMark';
 
 const PERSIAN_YEAR = new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).format(new Date());
@@ -6,7 +6,7 @@ const PERSIAN_YEAR = new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).forma
 const QUICK_LINKS = [
   { href: '#products', label: 'محصولات' },
   { href: '#why', label: 'چرا نجلا؟' },
-  { href: '#reviews', label: 'نظرات مشتریان' },
+  { href: '#reviews', label: 'راهنمای انتخاب' },
   { href: '#faq', label: 'سوالات متداول' },
   { href: '#newsletter', label: 'خبرنامه' },
 ];
@@ -20,15 +20,15 @@ export function Footer() {
             <BrandMark size="md" />
             <span className="flex flex-col leading-none">
               <span className="font-display text-2xl leading-none">نجلا</span>
-              <span className="mt-1 text-[9px] font-semibold tracking-[0.32em] text-cream/45">
+              <span className="mt-1 text-[9px] font-semibold tracking-[0.32em] text-cream/65">
                 NAJLA
               </span>
             </span>
           </p>
-          <p className="mt-5 max-w-xs text-sm leading-7 text-cream/55">
+          <p className="mt-5 max-w-xs text-sm leading-7 text-cream/75">
             خرمای اصیل، انتخاب دقیق، بسته‌بندی شیک. از دل باغ تا در خانه‌ی شما.
           </p>
-          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-cream/55">
+          <ul className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-cream/75">
             <li className="flex items-center gap-1.5">
               <Leaf className="size-3.5 text-gold" aria-hidden />
               طبیعی و تازه
@@ -46,7 +46,7 @@ export function Footer() {
 
         <nav aria-label="دسترسی سریع">
           <p className="text-xs font-semibold text-gold">دسترسی سریع</p>
-          <ul className="mt-4 space-y-3 text-sm text-cream/60">
+          <ul className="mt-4 space-y-3 text-sm text-cream/75">
             {QUICK_LINKS.map(link => (
               <li key={link.href}>
                 <a
@@ -61,22 +61,22 @@ export function Footer() {
         </nav>
 
         <div>
-          <p className="text-xs font-semibold text-gold">ارتباط با ما</p>
-          <p className="mt-4 flex items-center gap-2 text-sm text-cream/60" dir="ltr">
-            <Mail className="size-4 text-gold" aria-hidden />
-            <span className="font-mono text-xs">hello@najla.local</span>
+          <p className="text-xs font-semibold text-gold">خرید از نجلا</p>
+          <p className="mt-4 flex items-center gap-2 text-sm text-cream/75">
+            <ShoppingBag className="size-4 text-gold" aria-hidden />
+            <a href="#products" className="underline underline-offset-4">مشاهدهٔ محصولات و قیمت‌ها</a>
           </p>
-          <p className="mt-3 text-sm leading-7 text-cream/60">
-            پاسخگویی: شنبه تا چهارشنبه، ۹ تا ۱۸
+          <p className="mt-3 text-sm leading-7 text-cream/75">
+            خرید مهمان یا با حساب کاربری
           </p>
-          <p className="mt-4 text-[11px] leading-6 text-cream/40">
+          <p className="mt-4 text-[11px] leading-6 text-cream/65">
             سفارش‌ها پس از تأیید، در روزهای کاری بسته‌بندی و ارسال می‌شوند.
           </p>
         </div>
       </div>
 
       <div className="border-t border-cream/10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-[11px] text-cream/40 sm:flex-row md:px-6">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-[11px] text-cream/65 sm:flex-row md:px-6">
           <p>© {PERSIAN_YEAR} نجلا — تمامی حقوق محفوظ است.</p>
           <p>تمام قیمت‌ها به تومان است.</p>
         </div>

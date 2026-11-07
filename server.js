@@ -277,7 +277,7 @@ function getOrCreateCart(db, userId, sessionId) {
 function cartItemsWithProducts(db, cartId) {
   return db.prepare(`
     SELECT ci.id as item_id, ci.quantity,
-           p.id as product_id, p.name, p.emoji, p.price, p.old_price,
+           p.id as product_id, p.slug, p.name, p.emoji, p.price, p.old_price,
            p.category, p.weight, p.stock
     FROM cart_items ci JOIN products p ON p.id = ci.product_id
     WHERE ci.cart_id = ? ORDER BY ci.id DESC
@@ -517,6 +517,13 @@ app.put('/api/addresses/:id/default', requireAuth, (req, res) => {
 // ============================================
 // PRODUCTS
 // ============================================
+app.post('/api/newsletter', rateLimit('newsletter', 10, 60000), (req, res) => {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  if (email.length > 160 || !EMAIL_RE.test(email)) return res.status(400).json({ error: 'یک ایمیل معتبر وارد کنید.' });
+  getDb().prepare('INSERT OR IGNORE INTO newsletter_subscribers (email) VALUES (?)').run(email);
+  res.json({ message: 'ایمیل شما در فهرست خبرنامه ثبت شد.' });
+});
+
 app.get('/api/products', (req, res) => {
   const db = getDb();
   const { category, search, sort } = req.query;

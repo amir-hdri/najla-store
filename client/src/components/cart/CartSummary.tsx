@@ -15,7 +15,7 @@ export function CartSummary({ cart, promo }: { cart: Cart; promo: PromoInfo | nu
   return (
     <div className="space-y-4">
       {cart.subtotal > 0 &&
-        (remaining > 0 ? (
+        (shipping > 0 && remaining > 0 ? (
           <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
             <p className="mb-2 flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <Truck className="size-3.5 text-gold" aria-hidden />

@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const TMP_ROOT = path.resolve(ROOT, '..', '..', '.openclaw', 'tmp', 'datenest-tests');
@@ -66,6 +67,21 @@ before(async () => {
 after(() => {
   if (child) child.kill('SIGTERM');
   rmSync(DB_DIR, { recursive: true, force: true });
+});
+
+test('newsletter persists normalized emails once and rejects invalid input', async () => {
+  for (const email of [' UI-Review@Example.com ', 'ui-review@example.com']) {
+    const res = await api('/api/newsletter', { method: 'POST', body: { email } });
+    assert.equal(res.status, 200);
+  }
+  const db = new DatabaseSync(path.join(DB_DIR, 'test.db'));
+  try {
+    const row = db.prepare('SELECT count(*) AS count FROM newsletter_subscribers WHERE email = ?').get('ui-review@example.com');
+    assert.equal(row.count, 1);
+  } finally { db.close(); }
+  for (const email of ['bad', '', { value: 'bad' }]) {
+    assert.equal((await api('/api/newsletter', { method: 'POST', body: { email } })).status, 400);
+  }
 });
 
 // ---------------------------------------------------------------- health ----

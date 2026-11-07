@@ -1,39 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowUpDown, Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import type { CategoryRow, CategorySlug } from '@/lib/types';
-
-export type SortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
-
-export interface CatalogFilters {
-  category: string;
-  search: string;
-  sort: SortKey;
-}
-
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-  { value: 'default', label: 'پیش‌فرض' },
-  { value: 'price-asc', label: 'قیمت: کم به زیاد' },
-  { value: 'price-desc', label: 'قیمت: زیاد به کم' },
-  { value: 'name', label: 'نام' },
-];
-
-const CATEGORY_NAMES: Record<CategorySlug | 'all', string> = {
-  all: 'همه',
-  premium: 'پریمیوم',
-  classic: 'کلاسیک',
-  craft: 'صنایع‌دستی',
-  gifts: 'هدایا',
-};
-
-const faNumber = new Intl.NumberFormat('fa-IR');
+  CATEGORY_NAMES,
+  type CatalogFilters,
+  type SortKey,
+} from '@/lib/catalog';
+import type { CategoryRow } from '@/lib/types';
+export type { CatalogFilters } from '@/lib/catalog';
 
 export function FilterBar({
   categories,
@@ -44,113 +17,73 @@ export function FilterBar({
   value: CatalogFilters;
   onChange(next: CatalogFilters): void;
 }) {
-  const [searchText, setSearchText] = useState(value.search);
-  const debounce = useRef<number | undefined>(undefined);
-
-  useEffect(() => setSearchText(value.search), [value.search]);
-
-  useEffect(() => {
-    window.clearTimeout(debounce.current);
-    debounce.current = window.setTimeout(() => {
-      if (searchText !== value.search) onChange({ ...value, search: searchText });
-    }, 300);
-    return () => window.clearTimeout(debounce.current);
-  }, [searchText]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const chips = useMemo(() => {
-    const all: { key: string; name: string; count: number } = {
-      key: 'all',
-      name: CATEGORY_NAMES.all,
-      count: categories.reduce((s, c) => s + c.count, 0),
-    };
-    return [
-      all,
-      ...categories.map(c => ({
-        key: c.category,
-        name: CATEGORY_NAMES[c.category] ?? c.category,
-        count: c.count,
-      })),
-    ];
-  }, [categories]);
-
+  const chips = Object.entries(CATEGORY_NAMES).map(([key, name]) => ({
+    key,
+    name,
+    count:
+      key === 'all'
+        ? categories.reduce((sum, c) => sum + c.count, 0)
+        : categories.find((c) => c.category === key)?.count,
+  }));
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-      <div
-        className="no-scrollbar flex items-center gap-2 overflow-x-auto"
-        role="group"
-        aria-label="دسته‌بندی"
-      >
-        {chips.map(c => {
-          const active = c.key === value.category;
-          return (
-            <button
-              key={c.key}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange({ ...value, category: c.key })}
-              className={`tap flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[.97] ${
-                active
-                  ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                  : 'border-border bg-card text-muted-foreground hover:border-primary/35 hover:text-foreground'
-              }`}
-            >
-              {c.name}
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
-                  active ? 'bg-primary-foreground/15' : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                {faNumber.format(c.count)}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row lg:ms-auto">
-        <div className="relative flex-1 lg:w-52 lg:flex-none">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative min-w-0 flex-1">
           <Search
-            className="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
           <Input
-            className="h-9 rounded-xl border-border/80 bg-card pr-9 pl-8"
-            placeholder="جستجوی محصول…"
+            id="catalog-search"
+            type="search"
+            className="h-12 rounded-xl bg-card pr-11 pl-12"
+            placeholder="چه خرمایی دوست دارید؟"
             aria-label="جستجوی محصول"
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
+            value={value.search}
+            onChange={(e) => onChange({ ...value, search: e.target.value })}
           />
-          {searchText ? (
+          {value.search && (
             <button
               type="button"
-              onClick={() => setSearchText('')}
+              onClick={() => onChange({ ...value, search: '' })}
               aria-label="پاک کردن جستجو"
-              className="tap absolute left-1 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="absolute left-1 top-1 grid size-10 place-items-center rounded-lg text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
             >
-              <X className="size-3.5" aria-hidden />
+              <X className="size-4" aria-hidden />
             </button>
-          ) : null}
+          )}
         </div>
-
-        <Select
+        <select
           value={value.sort}
-          onValueChange={v => onChange({ ...value, sort: v as SortKey })}
+          onChange={(e) =>
+            onChange({ ...value, sort: e.target.value as SortKey })
+          }
+          aria-label="مرتب‌سازی"
+          className="h-12 rounded-xl border border-input bg-card px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-48"
         >
-          <SelectTrigger
-            className="h-9 w-full rounded-xl border-border/80 bg-card sm:w-44"
-            aria-label="مرتب‌سازی"
+          <option value="default">مرتب‌سازی: پیشنهاد نجلا</option>
+          <option value="price-asc">ارزان‌ترین</option>
+          <option value="price-desc">گران‌ترین</option>
+          <option value="name">نام محصول</option>
+        </select>
+      </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="دسته‌بندی">
+        {chips.map((c) => (
+          <button
+            key={c.key}
+            type="button"
+            aria-pressed={c.key === value.category}
+            onClick={() => onChange({ ...value, category: c.key })}
+            className={`flex min-h-11 items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:text-sm ${c.key === value.category ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground'}`}
           >
-            <ArrowUpDown className="size-3.5 text-muted-foreground" aria-hidden />
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map(o => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            {c.name}
+            {c.count !== undefined && (
+              <span className="text-[11px] tabular-nums opacity-75">
+                {c.count.toLocaleString('fa-IR')}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );

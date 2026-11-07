@@ -22,6 +22,7 @@ export interface CategoryRow {
 
 export interface CartItem {
   item_id: number;
+  slug?: string;
   product_id: number;
   name: string;
   emoji: string;

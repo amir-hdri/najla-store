@@ -43,5 +43,7 @@ export const categoryArt: Record<string, string> = {
 };
 
 export function artFor(slug: string): string | undefined {
+  if (slug === 'piarom') return productArt['deglet'] ?? categoryArt['premium'];
+  if (slug === 'rabbi') return productArt['sayer'] ?? categoryArt['classic'];
   return productArt[slug] ?? categoryArt[slug];
 }

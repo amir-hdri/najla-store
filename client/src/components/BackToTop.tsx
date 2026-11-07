@@ -30,7 +30,7 @@ export function BackToTop() {
           onClick={scrollTop}
           aria-label="بازگشت به بالای صفحه"
           title="بازگشت به بالا"
-          className="fixed bottom-6 right-4 z-40 grid size-11 place-items-center rounded-full border border-border/80 bg-card/95 text-primary shadow-warm backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:right-6"
+          className="fixed bottom-6 right-6 z-40 hidden size-11 place-items-center rounded-full border border-border/80 bg-card/95 text-primary shadow-warm backdrop-blur transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring xl:grid"
         >
           <ArrowUp className="size-5" aria-hidden />
         </motion.button>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useScroll } from 'framer-motion';
-import { ArrowLeft, Menu, Package, Truck, User } from 'lucide-react';
+import { ArrowLeft, Menu, Package, Search, Truck, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -13,25 +13,28 @@ import { CartButton } from '@/components/CartButton';
 import { BrandMark } from '@/components/BrandMark';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { lazy, Suspense } from 'react';
-import { AuthDialog } from '@/components/auth/AuthDialog';
+const AuthDialog = lazy(() => import('@/components/auth/AuthDialog').then(m => ({ default: m.AuthDialog })));
 
 const AccountDialog = lazy(() => import('@/components/account/AccountDialog').then(m => ({ default: m.AccountDialog })));
 import { useAuth } from '@/context/AuthContext';
 
 const NAV_ITEMS = [
   { href: '#products', label: 'محصولات' },
-  { href: '#why', label: 'چرا نجلا؟' },
+  { href: '#products?category=gifts', label: 'هدیه‌های نجلا' },
+  { href: '#faq', label: 'راهنمای خرید' },
   { href: '#newsletter', label: 'خبرنامه' },
 ];
 
-export function Header({ bump }: { bump: number }) {
+export function Header() {
   const { user } = useAuth();
   const [authOpen, setAuthOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [accountSection, setAccountSection] = useState<'profile' | 'orders'>('profile');
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
 
-  function openAccount() {
+  function openAccount(section: 'profile' | 'orders' = 'profile') {
+    setAccountSection(section);
     setMenuOpen(false);
     if (user) setAccountOpen(true);
     else setAuthOpen(true);
@@ -39,12 +42,12 @@ export function Header({ bump }: { bump: number }) {
 
   return (
     <>
-      <div className="bg-espresso text-cream">
+      <div className="bg-primary text-primary-foreground">
         <p className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-2 text-center text-[11px] font-medium sm:text-xs">
-          <Truck className="size-3.5 shrink-0 text-gold" aria-hidden />
+          <Truck className="size-3.5 shrink-0 text-primary-foreground" aria-hidden />
           <span>ارسال رایگان برای سفارش‌های بالای ۵۰۰٬۰۰۰ تومان</span>
-          <span className="hidden h-3 w-px bg-cream/20 sm:block" aria-hidden />
-          <span className="hidden text-cream/65 sm:inline">تازه، مستقیم از نخلستان</span>
+          <span className="hidden h-3 w-px bg-primary-foreground/20 sm:block" aria-hidden />
+          <span className="hidden text-primary-foreground/80 sm:inline">تازه، مستقیم از نخلستان</span>
         </p>
       </div>
 
@@ -54,14 +57,14 @@ export function Header({ bump }: { bump: number }) {
             href="#top"
             className="tap flex items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           >
-            <BrandMark size="sm" animated />
+            <BrandMark size="sm" />
             <span className="flex flex-col leading-none">
               <span className="font-display text-2xl leading-none md:text-[1.7rem]">نجلا</span>
               <span className="mt-1 text-[9px] font-semibold tracking-[0.32em] text-muted-foreground">
                 NAJLA
               </span>
             </span>
-            <span className="sr-only">نجلا — فروشگاه خرما و میوه</span>
+            <span className="sr-only">نجلا — فروشگاه خرما</span>
           </a>
 
           <nav aria-label="ناوبری اصلی" className="hidden items-center gap-1 md:flex">
@@ -76,7 +79,8 @@ export function Header({ bump }: { bump: number }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-0.5 sm:gap-1">
+          <div className="flex items-center gap-0.5 [&_button]:size-11 [&_button]:after:hidden sm:gap-1">
+            <Button variant="ghost" size="icon" className="size-11" aria-label="جستجو در محصولات" onClick={() => { document.getElementById('products')?.scrollIntoView(); document.getElementById('catalog-search')?.focus({ preventScroll: true }); }}><Search className="size-5" aria-hidden /></Button>
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -84,7 +88,7 @@ export function Header({ bump }: { bump: number }) {
               className="tap hidden sm:inline-flex"
               aria-label="سفارش‌های من"
               title="سفارش‌های من"
-              onClick={() => (user ? setAccountOpen(true) : setAuthOpen(true))}
+              onClick={() => openAccount('orders')}
             >
               <Package className="size-5" aria-hidden />
             </Button>
@@ -94,11 +98,11 @@ export function Header({ bump }: { bump: number }) {
               className="tap hidden sm:inline-flex"
               aria-label={user ? `حساب ${user.name}` : 'حساب کاربری'}
               title={user ? user.name : 'حساب کاربری'}
-              onClick={openAccount}
+              onClick={() => openAccount()}
             >
               <User className="size-5" aria-hidden />
             </Button>
-            <CartButton bump={bump} />
+            <CartButton />
             <Button
               variant="ghost"
               size="icon"
@@ -115,7 +119,7 @@ export function Header({ bump }: { bump: number }) {
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetContent
             side="right"
-            showCloseButton={false}
+            showCloseButton
             className="w-[86%] max-w-xs gap-0 border-s-0 bg-background p-0"
           >
             <SheetHeader className="border-b border-border/70 p-6 text-start">
@@ -129,7 +133,7 @@ export function Header({ bump }: { bump: number }) {
                 </span>
               </SheetTitle>
               <SheetDescription className="pt-2 text-sm leading-6 text-muted-foreground">
-                خرما و میوه خشک، از نخلستان تا سفره شما.
+                خرما و فرآورده‌های خرما؛ برای هر سلیقه و مناسبت.
               </SheetDescription>
             </SheetHeader>
 
@@ -148,16 +152,14 @@ export function Header({ bump }: { bump: number }) {
             </nav>
 
             <div className="mt-auto space-y-3 border-t border-border/70 p-6">
-              <Button className="tap h-11 w-full" onClick={openAccount}>
+              <Button className="tap h-11 w-full" onClick={() => openAccount()}>
                 {user ? 'حساب کاربری' : 'ورود / ثبت‌نام'}
               </Button>
               <Button
                 variant="outline"
                 className="tap h-11 w-full"
                 onClick={() => {
-                  setMenuOpen(false);
-                  if (user) setAccountOpen(true);
-                  else setAuthOpen(true);
+                  openAccount('orders');
                 }}
               >
                 <Package className="size-4" aria-hidden />
@@ -170,9 +172,9 @@ export function Header({ bump }: { bump: number }) {
           </SheetContent>
         </Sheet>
 
-        <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
         <Suspense fallback={null}>
-          <AccountDialog open={accountOpen} onOpenChange={setAccountOpen} />
+          {authOpen && <AuthDialog open onOpenChange={setAuthOpen} onSuccess={() => setAccountOpen(true)} />}
+          {accountOpen && <AccountDialog open onOpenChange={setAccountOpen} initialSection={accountSection} />}
         </Suspense>
 
         <motion.div

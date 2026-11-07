@@ -29,6 +29,7 @@ import type { Address, AddressInput, Order } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { OrderCard } from '@/components/orders/OrderCard';
 import { cn } from 'cn';
+import { normalizeDigits, normalizePhone } from '@/lib/input';
 
 const EMPTY_FORM: AddressInput = {
   label: 'خانه',
@@ -62,9 +63,11 @@ function SectionTitle({
 export function AccountDialog({
   open,
   onOpenChange,
+  initialSection = 'profile',
 }: {
   open: boolean;
   onOpenChange(v: boolean): void;
+  initialSection?: 'profile' | 'orders';
 }) {
   const { user, logout, refresh } = useAuth();
 
@@ -96,10 +99,11 @@ export function AccountDialog({
     setAddresses(null);
     setOrders(null);
     setOrdersError(null);
+    setAddrError(null);
 
     AddressesAPI.list()
       .then(r => setAddresses(r.addresses))
-      .catch(() => setAddresses([]));
+      .catch(e => { setAddresses([]); setAddrError(e instanceof Error ? e.message : 'دریافت نشانی‌ها انجام نشد.'); });
     OrdersAPI.list()
       .then(r => setOrders(r.orders))
       .catch(e => {
@@ -108,12 +112,18 @@ export function AccountDialog({
       });
   }, [open, user]);
 
+  useEffect(() => {
+    if (open && initialSection === 'orders' && orders !== null) {
+      document.getElementById('orders-heading')?.scrollIntoView({ block: 'start' });
+    }
+  }, [open, initialSection, orders]);
+
   const loadAddresses = useCallback(async () => {
     try {
       const r = await AddressesAPI.list();
       setAddresses(r.addresses);
-    } catch {
-      setAddresses([]);
+    } catch (e) {
+      setAddrError(e instanceof Error ? e.message : 'دریافت نشانی‌ها انجام نشد.');
     }
   }, []);
 
@@ -121,7 +131,7 @@ export function AccountDialog({
     e.preventDefault();
     setProfileBusy(true); setProfileMsg(null);
     try {
-      await AuthAPI.updateProfile({ name: name.trim(), phone: phone.trim() || undefined });
+      await AuthAPI.updateProfile({ name: name.trim(), phone: normalizePhone(phone) || undefined });
       await refresh();
       setProfileMsg('پروفایل ذخیره شد.');
     } catch (err) {
@@ -148,10 +158,11 @@ export function AccountDialog({
     if (!addrForm) return;
     setAddrBusy(true); setAddrError(null);
     try {
+      const payload = { ...addrForm, phone: normalizePhone(addrForm.phone), postal_code: normalizeDigits(addrForm.postal_code || '') };
       if (editId != null) {
-        await AddressesAPI.update(editId, addrForm);
+        await AddressesAPI.update(editId, payload);
       } else {
-        await AddressesAPI.create(addrForm);
+        await AddressesAPI.create(payload);
       }
       setAddrForm(null);
       setEditId(null);

@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/context/AuthContext';
+import { normalizePhone, PHONE_RE } from '@/lib/input';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -36,7 +37,7 @@ function PasswordInput({
         id={id}
         type={visible ? 'text' : 'password'}
         dir="ltr"
-        className="pe-10"
+        className="pr-11"
         value={value}
         onChange={onChange}
         autoComplete={autoComplete}
@@ -44,7 +45,7 @@ function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute end-1 top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="absolute right-1 top-1/2 grid size-9 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         aria-label={visible ? 'پنهان کردن گذرواژه' : 'نمایش گذرواژه'}
       >
         {visible ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
@@ -57,10 +58,12 @@ export function AuthDialog({
   open,
   onOpenChange,
   initialTab = 'login',
+  onSuccess,
 }: {
   open: boolean;
   onOpenChange(v: boolean): void;
   initialTab?: 'login' | 'register';
+  onSuccess?(): void;
 }) {
   const { login, register } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -93,8 +96,9 @@ export function AuthDialog({
     if (!password) { setError('گذرواژه لازم است.'); return; }
     setBusy(true); setError(null);
     try {
-      await login({ email, password });
-      onOpenChange(false);
+      await login({ email: email.trim(), password });
+      handleOpenChange(false);
+      onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطایی رخ داد.');
     } finally { setBusy(false); }
@@ -102,25 +106,27 @@ export function AuthDialog({
 
   async function submitRegister(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) { setError('نام لازم است.'); return; }
+    if (name.trim().length < 2 || name.trim().length > 80) { setError('نام باید بین ۲ تا ۸۰ نویسه باشد.'); return; }
     if (!EMAIL_RE.test(rEmail)) { setError('ایمیل معتبر نیست.'); return; }
-    if (rPassword.length < 8) { setError('گذرواژه باید حداقل ۸ نویسه باشد.'); return; }
+    if (!/^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(rPassword)) { setError('گذرواژه باید حداقل ۸ نویسه، شامل حرف انگلیسی و عدد باشد.'); return; }
+    if (!PHONE_RE.test(normalizePhone(phone))) { setError('یک شماره تماس معتبر وارد کنید.'); return; }
     setBusy(true); setError(null);
     try {
       await register({
         name: name.trim(),
-        email: rEmail,
+        email: rEmail.trim(),
         password: rPassword,
-        phone: phone.trim() || undefined,
+        phone: normalizePhone(phone),
       });
-      onOpenChange(false);
+      handleOpenChange(false);
+      onSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطایی رخ داد.');
     } finally { setBusy(false); }
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={value => { if (!busy) handleOpenChange(value); }}>
       <DialogContent className="sm:max-w-sm" dir="rtl">
         <DialogHeader className="items-center gap-1.5 text-center">
           <span className="mb-1 grid size-12 place-items-center rounded-full bg-primary/10 font-display text-2xl font-bold text-primary">
@@ -128,7 +134,7 @@ export function AuthDialog({
           </span>
           <p className="text-[11px] text-gold">فروشگاه نجلا</p>
           <DialogTitle className="font-display text-2xl">خوش آمدید</DialogTitle>
-          <DialogDescription>برای ثبت سفارش و پیگیری آن وارد شوید.</DialogDescription>
+          <DialogDescription>برای نگهداری نشانی‌ها و مشاهدهٔ سفارش‌ها وارد شوید.</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue={initialTab} onValueChange={() => setError(null)} className="gap-4">
@@ -199,7 +205,7 @@ export function AuthDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reg-password">گذرواژه (حداقل ۸ نویسه)</Label>
+                <Label htmlFor="reg-password">گذرواژه (حداقل ۸ نویسه، حرف و عدد)</Label>
                 <PasswordInput
                   id="reg-password"
                   value={rPassword}
@@ -210,9 +216,10 @@ export function AuthDialog({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reg-phone">تلفن (اختیاری)</Label>
+                <Label htmlFor="reg-phone">شمارهٔ تماس</Label>
                 <Input
                   id="reg-phone"
+                  required
                   dir="ltr"
                   inputMode="tel"
                   placeholder="0912 000 0000"

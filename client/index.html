@@ -19,12 +19,12 @@
     <style>
       /* ---- App loader: self-contained, renders before JS bundle ---- */
       #app-loader {
-        --al-bg: #faf6ee;
-        --al-fg: #241a13;
-        --al-muted: #6e6259;
+        --al-bg: #f6f7f2;
+        --al-fg: #20362d;
+        --al-muted: #626e65;
         --al-gold: #b98338;
-        --al-primary: #8a3d1f;
-        --al-border: #e7dbc8;
+        --al-primary: #285443;
+        --al-border: #dce2d7;
         --al-card: #fffdf8;
         position: fixed;
         inset: 0;
@@ -39,13 +39,13 @@
         transition: opacity 0.5s ease;
       }
       html.dark #app-loader {
-        --al-bg: #15100c;
-        --al-fg: #f4ece1;
-        --al-muted: #b9ab9d;
+        --al-bg: #101b17;
+        --al-fg: #edf3e9;
+        --al-muted: #b1c1b3;
         --al-gold: #d9ac66;
-        --al-primary: #e0a45f;
-        --al-border: #35291f;
-        --al-card: #1f1813;
+        --al-primary: #b8d5a8;
+        --al-border: #34483b;
+        --al-card: #192a22;
       }
       html.app-ready #app-loader {
         opacity: 0;
@@ -167,13 +167,14 @@
           </span>
         </div>
         <p class="al-name">نجلا</p>
-        <p class="al-sub">NAJLA · DATES & FRUITS</p>
+        <p class="al-sub">NAJLA · DATES</p>
         <div class="al-bar" aria-hidden="true"><span class="al-fill"></span></div>
         <p class="al-hint">در حال آماده‌سازی فروشگاه…</p>
       </div>
     </div>
     <div id="root"></div>
     <noscript>
+      <style>#app-loader { display: none; }</style>
       <p style="font-family: Tahoma, sans-serif; text-align: center; padding: 2rem">
         برای مشاهده‌ی فروشگاه نجلا، جاوااسکریپت را در مرورگر خود فعال کنید.
       </p>

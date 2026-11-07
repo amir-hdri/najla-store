@@ -52,7 +52,12 @@ export async function api<T>(path: string, opts?: { method?: string; body?: unkn
 
 export const AuthAPI = {
   register(input: { name: string; email: string; password: string; phone?: string }) {
-    return api<{ token: string; user: User }>('/api/auth/register', { method: 'POST', body: input });
+    return api<{ token: string; user: User }>('/api/auth/register', {
+      method: 'POST',
+      // The form uses one password field with a visibility toggle; the API
+      // retains its legacy confirmation field for compatibility.
+      body: { ...input, confirm_password: input.password },
+    });
   },
   login(input: { email: string; password: string }) {
     return api<{ token: string; user: User }>('/api/auth/login', { method: 'POST', body: input });
